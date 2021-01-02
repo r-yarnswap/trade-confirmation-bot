@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+  <flow name="get-first-image" doc:id="3e3e75a0-13ed-4935-adfe-ab3a1ac6d736">
+    <set-variable value='#[(payload splitBy "/" filter trim($) != "")[-1]]' doc:name="Set Variable" doc:id="ebf586b4-7f57-4eaa-ac1b-ea4af1545f4f" variableName="galleryHash" />
+    <http:request method="GET" doc:id="bf69c42e-da35-4bd1-9b26-5b28fc02dd8e" url='#["https://api.imgur.com/3/album/$(vars.galleryHash)/images"]' outputMimeType="application/json">
+      <http:headers>
+        <![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Client-ID f761a500d7dd55f"
+}]]]>
+      </http:headers>
+    </http:request>
+    <set-payload value='#[payload.data[0].link]' doc:name="Set Payload" doc:id="f3686c46-2e88-47a8-af50-d00b7868d74a" />
+    <logger level="INFO" doc:name="Logger" doc:id="0d65d157-be17-4da8-ba74-9feb16c18ba3" />
+    <error-handler>
+      <on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c81436b4-1b1e-41a3-81c8-d577ecbf726e">
+        <set-payload value="https://www.publicdomainpictures.net/pictures/280000/velka/not-found-image-15383864787lu.jpg" doc:name="Set Payload" doc:id="d978e6b0-8f6a-4ee2-805e-95ea3b392c3e" />
+      </on-error-continue>
+    </error-handler>
+  </flow>
+</mule>

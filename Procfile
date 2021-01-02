@@ -1,0 +1,1 @@
+worker: chmod u+x .heroku/mule-startup.sh && .heroku/mule-startup.sh

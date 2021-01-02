@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<settings>
+  <servers>
+    <server>
+      <id>github-reddit-connector</id>
+      <username>${GIT_USERNAME}</username>
+      <password>${GIT_TOKEN}</password>
+    </server>
+    <server>
+      <id>github-pushover</id>
+      <username>${GIT_USERNAME}</username>
+      <password>${GIT_TOKEN}</password>
+    </server>
+    <server>
+      <id>github-mongodb-objectstore</id>
+      <username>${GIT_USERNAME}</username>
+      <password>${GIT_TOKEN}</password>
+    </server>
+  </servers>
+  <pluginGroups>
+    <pluginGroup>org.mule.tools</pluginGroup>
+  </pluginGroups>
+  <profiles>
+    <profile>
+      <id>Mule</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>github-reddit-connector</id>
+          <name>GitHub Mulesoft-FHIR Apache Maven Packages</name>
+          <url>https://maven.pkg.github.com/mikeacjones/mule4-reddit-connector</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>github-pushover</id>
+          <name>GitHub Mulesoft-FHIR Apache Maven Packages</name>
+          <url>https://maven.pkg.github.com/mikeacjones/mule4-pushover-connector</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>github-mongodb-objectstore</id>
+          <name>GitHub Mulesoft-FHIR Apache Maven Packages</name>
+          <url>https://maven.pkg.github.com/mikeacjones/mongodb-object-store</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+</settings>

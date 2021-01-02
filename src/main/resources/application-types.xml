@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="flairTemplatesExample" format="json">
+      <types:shape format="weave" example="examples/sameGetFlairs.json"><![CDATA[%dw 2.0
+
+type flairTemplatesExample = Array<{|  allowableContent: String,   text: String,   textColor: String,   modOnly: Boolean,   backgroundColor: String,   id: String,   cssClass: String,   maxEmojis: Number {"typeId": "int"},   richtext: Array<Any>, 
+  textEditable: Boolean, 
+  overrideCss: Boolean, 
+  "type": String
+|}> {"example": "[{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"Moderators\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#349e48\\\",\\\"id\\\":\\\"0e9eeb44-b02c-11ea-b295-0e55bd5f5791\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"0-0 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#373c3f\\\",\\\"id\\\":\\\"1c9465f8-b02c-11ea-beb4-0e22df1d4761\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"1-4 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#bbbdbf\\\",\\\"id\\\":\\\"311ae07e-b02c-11ea-ad84-0e8746feb23b\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"5-9 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#ffb000\\\",\\\"id\\\":\\\"52f0702e-b02c-11ea-8d35-0ec048bf42ed\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"10-24 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#b8001f\\\",\\\"id\\\":\\\"73f8f12e-b02c-11ea-89a7-0e18c057297f\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"25-49 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#5a74cc\\\",\\\"id\\\":\\\"7f49f5c8-b02c-11ea-ad55-0e97d85629b1\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"50-99 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#0dd3bb\\\",\\\"id\\\":\\\"8aee6d32-b02c-11ea-8d35-0ec048bf42ed\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"},{\\\"allowableContent\\\":\\\"all\\\",\\\"text\\\":\\\"100-999 Trades\\\",\\\"textColor\\\":\\\"light\\\",\\\"modOnly\\\":true,\\\"backgroundColor\\\":\\\"#ff66ac\\\",\\\"id\\\":\\\"9d33bac4-b02c-11ea-8c06-0ee7cb3e65a9\\\",\\\"cssClass\\\":\\\"\\\",\\\"maxEmojis\\\":10,\\\"richtext\\\":[],\\\"textEditable\\\":false,\\\"overrideCss\\\":false,\\\"type\\\":\\\"text\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="number" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: number]]></types:shape>
+    </types:type>
+    <types:type name="sampleComment" format="json">
+      <types:shape format="weave" example="examples/commentExample.json"><![CDATA[%dw 2.0
+
+type sampleComment = {|
+  gilded: Number {"typeId": "int"}, 
+  upvotes: Number {"typeId": "int"}, 
+  saved: Boolean, 
+  unread: Null, 
+  approvedBy: Null, 
+  body: String, 
+  subreddit: String, 
+  liked: Null, 
+  authorFlairCssClass: Null, 
+  archived: Boolean, 
+  score: Number {"typeId": "int"}, 
+  approved: Boolean, 
+  subredditNamePrefixed: String, 
+  bodyHtml: String, 
+  id: String, 
+  locked: Boolean, 
+  edited: Boolean, 
+  created: Number {"typeId": "double"}, 
+  author: String, 
+  subredditId: String, 
+  downvotes: Number {"typeId": "int"}, 
+  parentId: String, 
+  linkTitle: String, 
+  authorFlairText: String, 
+  linkId: String, 
+  stickied: Boolean, 
+  removed: Boolean, 
+  numReports: Number {"typeId": "int"}, 
+  linkPermalink: String, 
+  bannedBy: Null, 
+  editedAt: Null, 
+  name: String, 
+  permalink: String, 
+  linkAuthor: String, 
+  createdUtc: Number {"typeId": "double"}
+|} {"example": "{\\\"gilded\\\":0,\\\"upvotes\\\":1,\\\"saved\\\":false,\\\"unread\\\":null,\\\"approvedBy\\\":null,\\\"body\\\":\\\"u\\/FPInkBot bought a pen from me\\\",\\\"subreddit\\\":\\\"PenSwapBotDev\\\",\\\"liked\\\":null,\\\"authorFlairCssClass\\\":null,\\\"archived\\\":false,\\\"score\\\":1,\\\"approved\\\":false,\\\"subredditNamePrefixed\\\":\\\"r\\/PenSwapBotDev\\\",\\\"bodyHtml\\\":\\\"&lt;div class=\\\\\\\"md\\\\\\\"&gt;&lt;p&gt;&lt;a href=\\\\\\\"\\/u\\/FPInkBot\\\\\\\"&gt;u\\/FPInkBot&lt;\\/a&gt; bought a pen from me&lt;\\/p&gt;\\\\n&lt;\\/div&gt;\\\",\\\"id\\\":\\\"fv4dc86\\\",\\\"locked\\\":false,\\\"edited\\\":false,\\\"created\\\":1.592429795E9,\\\"author\\\":\\\"FPInkBotDev\\\",\\\"subredditId\\\":\\\"t5_2rs07g\\\",\\\"downvotes\\\":0,\\\"parentId\\\":\\\"t3_halkhx\\\",\\\"linkTitle\\\":\\\"June 2020 Confirmed Trade Thread\\\",\\\"authorFlairText\\\":\\\"Isa Bot\\\",\\\"linkId\\\":\\\"t3_halkhx\\\",\\\"stickied\\\":false,\\\"removed\\\":false,\\\"numReports\\\":0,\\\"linkPermalink\\\":\\\"https:\\/\\/www.reddit.com\\/r\\/PenSwapBotDev\\/comments\\/halkhx\\/june_2020_confirmed_trade_thread\\/\\\",\\\"bannedBy\\\":null,\\\"editedAt\\\":null,\\\"name\\\":\\\"t1_fv4dc86\\\",\\\"permalink\\\":\\\"\\/r\\/PenSwapBotDev\\/comments\\/halkhx\\/june_2020_confirmed_trade_thread\\/fv4dc86\\/\\\",\\\"linkAuthor\\\":\\\"PenSwapBotDev\\\",\\\"createdUtc\\\":1.592400995E9}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#5d0fa877-4f31-4506-9fd4-97198b6537cc">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="flairTemplates" type="flairTemplatesExample"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#67bdc85a-28ec-406e-b079-2fe8966d34e7">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="number"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#9cf298d4-6f7e-419b-9b16-1e2f906b122f">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="sampleComment"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#a4252faf-df72-49fe-b488-79c4327136d3">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="sampleComment"/>
+        </types:message>
+        <types:variables>
+          <types:variable name="tradesCount" type="number"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#582cfa73-1efe-47b4-a7a2-72ee3d1a2730">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="flairTemplatesExample"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

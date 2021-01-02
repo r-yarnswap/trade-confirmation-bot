@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+  <sub-flow name="handle-new-participants" doc:id="5b67ddc3-8d49-446b-b9e1-a4027c7cb395">
+    <choice doc:name="new user to subreddit?" doc:id="dd11df0c-490d-46cf-a8d8-816196999049">
+      <when expression="#[isEmpty(payload.authorFlairText)]">
+        <flow-ref doc:name="get-trade-count" doc:id="dce6aae2-b8bc-4957-b997-845633e3bf7d" name="get-trade-count" target="tradeCount" />
+        <flow-ref doc:name="update-user-flair" doc:id="c4cb3e6b-049c-4c01-94f5-6ab5e8287a6e" name="update-user-flair" />
+      </when>
+    </choice>
+  </sub-flow>
+  <sub-flow name="handle-comment" doc:id="9cf298d4-6f7e-419b-9b16-1e2f906b122f">
+    <logger level="INFO" doc:name="Logger" doc:id="a79982e2-28b9-45fc-b3eb-0f62391e1aaf" message="#[output application/json --- payload]" />
+    <set-variable value="#[(
+	not (
+		lower(payload.author) == lower(p('reddit_username'))
+	)
+) and 
+(
+	lower(payload.body) matches p('config.confirmedRegex')
+) and 
+(
+	lower(payload.linkAuthor) == lower(p('reddit_username'))
+) and 
+(
+	payload.linkId != payload.parentId
+)]" doc:name="isConfirmationReply" doc:id="c9c2d111-5cb4-4243-a444-20054541bc47" variableName="isConfirmationReply" />
+    <choice doc:name="is comment a reply to another comment, or root? and does it say confirmed?" doc:id="dcd73182-f800-4465-9348-e9c731171a22">
+      <when expression="#[vars.isConfirmationReply]">
+        <reddit:get-comment doc:name="get parent comment" doc:id="73d21538-b100-43b6-bce9-32d0b6a51eaf" config-ref="Reddit_Config" thingId="#[payload.parentId]" target="parent" />
+        <choice doc:name="is the person replying confirmed the right person?" doc:id="51410f47-903a-4282-951b-5630b12e6a53">
+          <when expression='#[vars.parent.parentId == vars.parent.linkId and (lower(vars.parent.body default "") contains "u/$(lower(payload.author))") and (lower(vars.parent.author) != lower(payload.author)) and sizeOf(lower(vars.parent.body default "") scan /\bu\/[^\s]+\b/ distinctBy $) == 1]'>
+            <set-variable value="#[payload]" doc:name="store replyTo" doc:id="4dc2f688-851a-4d7b-8d8a-e5d667000042" variableName="replyTo" />
+            <os:contains doc:name="validate we haven't already confirmed this trade" doc:id="f5c2f00c-a97c-46b8-a206-5f53ae5de7bb" key="#[vars.parent.name]" objectStore="PersistentStore" target="alreadyHandled" />
+            <choice doc:name="Choice" doc:id="1c85ace7-7ea0-45b1-af45-d76bd5c5b88f">
+              <when expression="#[not vars.alreadyHandled]">
+                <flow-ref doc:name="bump commenters trades" doc:id="be04c2fc-544c-4169-ac04-ebc37f2ff9c0" name="increment-user-flair" />
+                <set-payload value="#[vars.parent]" doc:name="Set Payload" doc:id="6ef36eee-8f43-4f24-9cb9-a7f4bf0e5c6e" />
+                <flow-ref doc:name="but parents trades" doc:id="5b90c2ef-4c50-4c36-941e-f185f3299112" name="increment-user-flair" />
+                <os:store doc:name="log that we confirmed this comment" doc:id="0716b80f-5cca-49f5-8c25-4a3e67f6e3e5" objectStore="PersistentStore" key="#[vars.parent.name]">
+                  <os:value>
+                    <![CDATA[#[true]]]>
+                  </os:value>
+                </os:store>
+                <reddit:comment doc:name="post confirmation" doc:id="6b123077-13f1-43ed-9962-ee7ba8771ea2" config-ref="Reddit_Config" parentId='#[vars.replyTo.name]' markdownText='${config.confirmConfirmation}' />
+              </when>
+              <otherwise>
+                <reddit:comment doc:name="Post Comment" doc:id="510886b4-3824-4f8f-b6a8-bc6f65086216" config-ref="Reddit_Config" parentId="#[vars.replyTo.name]" markdownText="${config.alreadyConfirmed}" />
+              </otherwise>
+              <!-- 							<otherwise>
+								<reddit:comment
+									doc:name="tell the commenter this is already confirmed"
+									doc:id="8c786328-0b72-4ba5-8ca9-e5821bf82307"
+									config-ref="Reddit_Config" parentId='#[payload.name]'
+									markdownText="${config.alreadyConfirmed}" />
+							</otherwise> -->
+            </choice>
+          </when>
+          <when expression="#[vars.parent.parentId == vars.parent.linkId and lower(vars.parent.author) == lower(payload.author)]">
+            <reddit:comment doc:name="comment that they cant self-confirm" doc:id="68c54c05-cb6a-4ccf-8ee6-9620bcf0c624" config-ref="Reddit_Config" parentId='#[payload.name]' markdownText="${config.noSelfConfirm}" />
+          </when>
+          <when expression="#[vars.parent.parentId == vars.parent.linkId]">
+            <reddit:comment doc:name="comment that they can't confirm trade because they weren't specified" doc:id="cfc69382-2728-4e4d-8806-2c7042880786" config-ref="Reddit_Config" parentId='#[payload.name]' markdownText="#[p('config.notYourConfirmation') dw::strings::interpolate payload]" />
+          </when>
+        </choice>
+      </when>
+      <when expression="#[lower(payload.linkAuthor) == lower(p('reddit_username')) and
+payload.linkId == payload.parentId and sizeOf(lower(payload.body) scan /\bu\/[^\s]+\b/ distinctBy $) &gt; 1]">
+        <reddit:remove-thing doc:name="Remove Thing (Moderation)" doc:id="e5f83880-514c-46cc-b0ba-6cc5d797423a" config-ref="Reddit_Config" thingFullName="#[payload.name]" target="removalResult" />
+        <reddit:send-private-message doc:name="Send Private Message" doc:id="b6d6019e-f9ca-4fd8-bdcc-c0c27974e319" config-ref="Reddit_Config" to="#[payload.author]" subject="#[p('config.removalTitleMulti') dw::strings::interpolate payload]" markdownText="#[p('config.removalBodyMulti') dw::strings::interpolate payload]" />
+      </when>
+      <when expression="#[lower(payload.linkAuthor) == lower(p('reddit_username')) and
+payload.linkId != payload.parentId]">
+        <flow-ref doc:name="check-if-mod-override" doc:id="1822aa07-6c1d-4b29-b9bf-fd780c3b2d8c" name="check-if-mod-override" />
+      </when>
+    </choice>
+  </sub-flow>
+</mule>

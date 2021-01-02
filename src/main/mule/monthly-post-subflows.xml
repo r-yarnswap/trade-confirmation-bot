@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:pushover="http://www.mulesoft.org/schema/mule/pushover" xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd
+http://www.mulesoft.org/schema/mule/pushover http://www.mulesoft.org/schema/mule/pushover/current/mule-pushover.xsd">
+  <sub-flow name="create-monthly-post" doc:id="d5cd34ee-94ac-42b2-b7f4-d871b709b59d">
+    <os:retrieve doc:name="Retrieve" doc:id="fb03846f-08fe-415e-aa1e-f8d32f3d0e4e" key='#[%dw 2.0
+---
+(now() - |P1M|) as String {format: "yyyyMM"}]' objectStore="PersistentStore" target="prevMonthPost">
+      <os:default-value>
+        <![CDATA[NOTFOUND]]>
+      </os:default-value>
+    </os:retrieve>
+    <reddit:submit-text-post doc:name="Submit Text Post" doc:id="64ac0e8b-4c32-4aef-b97c-b1ae56c79a22" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" title="#[p('config.monthlyTitle') dw::strings::interpolate { }]" markdownText="#[%dw 2.0
+
+var prevMonth = now() - |P1M|
+var info = {
+	prevMonth: prevMonth,
+	prevId: if (vars.prevMonthPost is Object) (vars.prevMonthPost.id default &quot;&quot;) else &quot;NOTFOUND&quot;
+}
+output text/plain
+---
+p('config.monthlyText') dw::strings::interpolate info]" />
+    <os:store doc:name="store this months post" doc:id="5cea4411-500e-48ac-969b-cb63b0c040f3" key='#[now() as String {format: "yyyyMM"}]' objectStore="PersistentStore">
+      <os:value>
+        <![CDATA[#[output application/json
+---
+payload]]]>
+      </os:value>
+    </os:store>
+    <reddit:sticky-subreddit-post doc:name="Set Post Sticky" doc:id="cd181db0-1435-49fd-822d-30ea59100d75" config-ref="Reddit_Config" thingId="#[payload.name]" stickied="true" stickyPosition="1" target="setStickyResult" />
+    <pushover:send-message doc:name="Send message" doc:id="2ae6ad86-1642-4746-91d2-4d0b469db2f1" userToken="u4p8exkryig9wxpesx44b59o79be6y" message="Created new monthly post" title="${reddit_subreddit} - Bot Info" url='#["https://www.reddit.com/r/pen_swap/$(payload.id)"]' priority="NORMAL" config-ref="Pushover_Config" />
+  </sub-flow>
+  <sub-flow name="do-monthly-post" doc:id="bb9c4dc4-dc29-4d41-b515-e2b53fad077d">
+    <os:contains doc:name="have a post for this month?" doc:id="faed7035-a5bf-40ec-8bc6-a3fc2e88f076" objectStore="PersistentStore" key='#[now() as String {format: "yyyyMM"}]' />
+    <choice doc:name="Choice" doc:id="0ff5b446-1c48-48ef-8aa7-a942b468f284">
+      <when expression="#[not payload]">
+        <flow-ref doc:name="create-monthly-post" doc:id="a0a13a27-45d9-4660-b087-cad735684174" name="create-monthly-post" />
+      </when>
+      <otherwise>
+        <try doc:name="Try" doc:id="3d75b221-aacf-40f1-8d1c-e5dc3f84540d">
+          <os:retrieve doc:name="retrieve this months post" doc:id="10f05f00-7d78-4ae9-9e52-b058bb75d8d9" key='#[now() as String {format: "yyyyMM"}]' objectStore="PersistentStore" />
+          <reddit:get-post doc:name="Get Post by Fullname" doc:id="df8228b7-9e8f-4a7e-ae90-541e0695f558" config-ref="Reddit_Config" thingId="#[payload.name]" />
+          <choice doc:name="Choice" doc:id="7c774d60-b2ff-40ff-bec2-c75227972783">
+            <when expression="#[payload.bannedAtUtc != null]">
+              <os:remove doc:name="reset-months-post" doc:id="6d80ee20-6f0c-48b2-9391-c82ce5f94153" key='#[now() as String {format: "yyyyMM"}]' objectStore="PersistentStore" />
+              <flow-ref doc:name="create-monthly-post" doc:id="bee22357-2495-436d-9d2a-fc307744e299" name="create-monthly-post" />
+            </when>
+          </choice>
+        </try>
+      </otherwise>
+    </choice>
+  </sub-flow>
+</mule>

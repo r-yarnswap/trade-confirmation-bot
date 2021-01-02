@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:system-inks="http://www.mulesoft.org/schema/mule/system-inks" xmlns:discord="http://www.mulesoft.org/schema/mule/discord" xmlns:pushover="http://www.mulesoft.org/schema/mule/pushover" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/pushover http://www.mulesoft.org/schema/mule/pushover/current/mule-pushover.xsd
+http://www.mulesoft.org/schema/mule/discord http://www.mulesoft.org/schema/mule/discord/current/mule-discord.xsd
+http://www.mulesoft.org/schema/mule/system-inks http://www.mulesoft.org/schema/mule/system-inks/current/mule-system-inks.xsd">
+  <flow name="monitor-new-comments" doc:id="5cfaa112-99cd-4dce-a41f-8621301ad88f" initialState="started">
+    <reddit:new-comment-listener doc:name="On New Comment" doc:id="23d896b1-9ffc-4d78-a083-cc6fc3c21842" config-ref="Reddit_Config" shouldCatchUp="true" objectStore="PersistentStore" subreddit="${reddit_subreddit}" updateFrequency="5000" />
+    <foreach doc:name="For Each" doc:id="09983981-a538-411b-800a-6f55db380322" collection='#[payload filter $.author != "[deleted]"]'>
+      <choice doc:name="Choice" doc:id="6c872d86-e846-489b-9ec5-3ce667989fce">
+        <when expression="#[payload.author == 'AutoModerator' and (lower(payload.body default &quot;&quot;) contains &quot;removed&quot;)]">
+          <reddit:remove-thing doc:name="Remove Thing (Moderation)" doc:id="0f0402a5-db5b-4919-bc6e-ca17770c11cf" config-ref="Reddit_Config" thingFullName="#[payload.linkId]" />
+        </when>
+        <otherwise>
+          <try doc:name="Try" doc:id="d266ef75-dc48-4d9e-9e54-adbd9ce31a25">
+            <flow-ref doc:name="process-new-subreddit-participants" doc:id="0422149d-d78e-44b8-917e-395d84ae96b9" name="handle-new-participants" target="newParticipantResult" />
+          </try>
+          <try doc:name="Try" doc:id="96f5f74e-0524-4235-b8bb-e55a98321c70">
+            <flow-ref doc:name="handle-comment" doc:id="633f5047-67d2-4e2f-b991-d72067225b61" name="handle-comment" />
+          </try>
+        </otherwise>
+      </choice>
+    </foreach>
+  </flow>
+  <flow name="monitor-new-posts" doc:id="b03f7a9a-7383-41e5-a69c-a9e16e778bf8" initialState="started">
+    <reddit:new-post-listener doc:name="On New Post" doc:id="3cc1d55e-c8e2-4f24-b59a-b400ba84db36" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" shouldCatchUp="true" objectStore="PersistentStore" updateFrequency="5000" />
+    <foreach doc:name="For Each" doc:id="b49792c0-95d3-4312-b9b7-c3fd7e0f1d35" collection='#[payload filter $.author != "[deleted]"]'>
+      <try doc:name="Try" doc:id="3fd57747-ae3f-426e-9ddf-85321a2b1c75">
+        <flow-ref doc:name="process-new-participants" doc:id="92aad615-0c3c-4508-9a73-797005a1fe01" name="handle-new-participants" target="newParticipantResult" />
+      </try>
+    </foreach>
+  </flow>
+  <flow name="post-monthly-submission-list" doc:id="8a5378fe-6b6a-4382-a12f-a3337c81fd8c" initialState="started">
+    <scheduler doc:name="fire monthly" doc:id="d990cde0-91a2-41e9-942d-f8d56003550b">
+      <scheduling-strategy>
+        <cron expression="0 0 0 1 * ?" />
+      </scheduling-strategy>
+    </scheduler>
+    <flow-ref doc:name="create-monthly-post" doc:id="187a47b8-0357-47cb-83e6-4ec37466a0b8" name="do-monthly-post" />
+  </flow>
+  <flow name="validate-monthly-post-exists-on-startup" doc:id="09e28b97-024e-4a25-ac6d-5771c75e0a2f" initialState="started">
+    <scheduler doc:name="check-for-monthly-thread-on-startup" doc:id="987bfb92-a32b-4e90-b50f-48ea116b0488">
+      <scheduling-strategy>
+        <fixed-frequency frequency="10000" timeUnit="DAYS" />
+      </scheduling-strategy>
+    </scheduler>
+    <pushover:send-message doc:name="Copy_of_Send message" doc:id="d9884adf-a2d6-4998-ac14-4d9a58392425" config-ref="Pushover_Config" userToken="${pushover_userToken}" message="Startup" title="${reddit_subreddit} - Bot Info" priority="NORMAL" />
+    <flow-ref doc:name="create-monthly-post" doc:id="6f9a6f5c-c36b-4eea-ae2a-5794dd921c44" name="do-monthly-post" />
+  </flow>
+</mule>

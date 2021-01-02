@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd">
+  <sub-flow name="update-user-flair" doc:id="a4252faf-df72-49fe-b488-79c4327136d3">
+    <flow-ref doc:name="get-flair-template-id" doc:id="55a3dd9f-04c6-4ce9-9b02-81b13a05465f" name="get-flair-template-id" target="flairTemplate" />
+    <reddit:set-subreddit-user-flair-ext doc:name="Set User's Subreddit Flair (Extended)" doc:id="2368b151-1188-438a-b5f0-8f73e5175d32" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" username="#[payload.author]" flairText="#[(p('config.tradesFlairPattern') default &quot;&quot;) replace &quot;{trades}&quot; with (vars.tradeCount default &quot;0&quot;)]" flairTemplateId="#[vars.flairTemplate.id]" target="setFlairResult" />
+  </sub-flow>
+  <sub-flow name="fetch-flair-templates" doc:id="b12a5177-4198-485e-ad2f-565f46ecc17e">
+    <reddit:get-flair-tempaltes doc:name="Get Subreddit Flair Templates" doc:id="98f6310a-e73d-45e6-8aba-ba3a72089306" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" />
+    <set-payload value='#[%dw 2.0
+output application/java
+---
+(payload reduce ((flair,a=[]) -&gt; do {
+    var m = ((flair.text default "") match /(\d+)-(\d+) Trades/)
+    ---
+    if (sizeOf(m) == 0) a
+    else a &lt;&lt; {
+        min: m[1] as Number,
+        max: m[2] as Number,
+        id: flair.id
+    }
+})) orderBy $.min]' doc:name="find trade templates" doc:id="797ad6b4-b49d-42a4-a8e7-b76fd601b57f" />
+    <os:store doc:name="store templates" doc:id="3ed7ca2e-7ad5-42d5-b12d-2e9d72b8a90f" key="flairTemplates" objectStore="NonPersistentStore" />
+  </sub-flow>
+  <sub-flow name="get-flair-template-id" doc:id="55556a48-1ab1-436f-9bc2-a3567ac4cc35">
+    <os:contains doc:name="have we already fetched the flairs?" doc:id="e6a1f608-1ce2-4856-bf2c-70f19fd906b2" key="flairTemplates" objectStore="NonPersistentStore" />
+    <choice doc:name="Choice" doc:id="ca5cbd00-a4ee-4b97-8c10-91fc298c8273">
+      <when expression="#[not payload]">
+        <flow-ref doc:name="fetch flairs from reddit" doc:id="582cfa73-1efe-47b4-a7a2-72ee3d1a2730" name="fetch-flair-templates" target="flairTemplates" />
+      </when>
+      <otherwise>
+        <os:retrieve doc:name="fetch flairs from memory" doc:id="522e39a5-3503-4dd2-9733-a5c9d294831f" key="flairTemplates" objectStore="NonPersistentStore" target="flairTemplates">
+          <os:default-value>
+            <![CDATA[#[null]]]>
+          </os:default-value>
+        </os:retrieve>
+      </otherwise>
+    </choice>
+    <set-payload value="#[%dw 2.0
+output application/java
+var filtered = (vars.flairTemplates default []) filter $.min &lt;= vars.tradeCount and $.max &gt;= vars.tradeCount
+---
+if (sizeOf(filtered default []) &gt; 0) filtered[0]
+else vars.flairTemplates[0]]" doc:name="find correct flair template" doc:id="5d0fa877-4f31-4506-9fd4-97198b6537cc" />
+  </sub-flow>
+  <sub-flow name="get-trade-count" doc:id="94ab678f-90be-4508-a66d-30db172ae448">
+    <reddit:get-subreddit-user-flair doc:name="Get User's Subreddit Flair" doc:id="87fdc650-6146-4dc2-8f5c-7c18c0578772" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" username="#[payload.author]" />
+    <set-payload value="#[var tradeMatch = (payload.flairText default &quot;&quot;) match p('config.tradesFlairRegex')
+---
+if (sizeOf(tradeMatch) &gt; 1) tradeMatch[1] as Number
+else do {
+	var oldTradeMatch = (payload.flairCssClass default &quot;&quot;) match /i-(\d+)/
+	---
+	if (sizeOf(oldTradeMatch) &gt; 1) oldTradeMatch[1] as Number
+	else 0
+}]" doc:name="set-trade-count" doc:id="9befde1f-3704-4713-a700-1caf4b24480e" />
+  </sub-flow>
+  <sub-flow name="increment-user-flair" doc:id="e229fc5e-c7de-41a9-962f-b2ab237b641f">
+    <choice doc:name="Choice" doc:id="f865c40a-817e-49db-817c-d72b4fc0a563">
+      <when expression="#[isEmpty(payload.authorFlairText) or (payload.authorFlairText matches p('config.tradesFlairRegex'))]">
+        <flow-ref doc:name="get current trade count and bounce it" doc:id="d51a4b86-2efa-48ec-aa15-4ce4d37295a3" name="get-trade-count" target="tradeCount" targetValue="#[(payload default 0) + 1]" />
+        <flow-ref doc:name="update-user-flair" doc:id="64bf536e-5876-4c0f-a20a-d225b6a27e32" name="update-user-flair" />
+      </when>
+    </choice>
+  </sub-flow>
+</mule>

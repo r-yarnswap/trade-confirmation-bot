@@ -1,0 +1,23 @@
+config: 
+  alreadyConfirmed: "This trade has already been confirmed! If you believe this to be in error, please contact the moderators."
+  confirmConfirmation: "User flairs updated."
+  confirmedRegex: "[^a-z]*confirmed[^a-z]*"
+  modConfirmRegex: "[^a-z]*approved[^a-z]*"
+  monthlyText: |-
+      Post your confirmed trades below; when confirming a post put Confirmed only. The bot will treat anything else as a conversation and ignore it.
+      
+       Previous month's confirmation thread: [{prevMonth:MMMM yyyy} Confirmed Trade Thread](https://www.reddit.com/r/${reddit_subreddit}/comments/{prevId}/)
+       
+       If the bot is malfunctioning, please send a [modmail](http://www.reddit.com/message/compose?to=%2Fr%2F${reddit_subreddit})
+  monthlyTitle: "{now:MMMM yyyy} Confirmed Trade Thread"
+  noSelfConfirm: "It looks like you're trying to self-confirm a trade! You can't do that. Please message the moderators if this is a mistake."
+  notYourConfirmation: "You can not confirm this trade as you were not specified in the comment body. If you believe this to be in error, simply request that the commentor update the comment with u/{author}. After they have updated their comment, you can reply Confirmed again."
+  removalBodyMulti: |-
+      Your comment has been removed; all confirmation posts must be for an individual trade with an individual user. If this action was taken erroneously, please contact the moderators. Do NOT respond to the bot as it isn't paying attention.
+      
+       Link to removed comment: [{linkPermalink}]({linkPermalink})
+      
+       Comment content: {body}
+  removalTitleMulti: "Please Post Individual Confirmations - {linkTitle}"
+  tradesFlairPattern: "Trades: {trades}"
+  tradesFlairRegex: "Trades: (\\d+)"

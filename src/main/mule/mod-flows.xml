@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd">
+  <flow name="check-if-mod-override" doc:id="be8a0b97-123c-4586-8f8f-a24c1cb5de59">
+    <flow-ref doc:name="is-user-a-mod" doc:id="f1a04bb8-73b9-4db1-baac-22765fb238f2" name="is-user-a-mod" target="isMod" />
+    <choice doc:name="Choice" doc:id="74994232-9af5-48b3-bba3-163dd7734b4e">
+      <when expression="#[vars.isMod and (lower(payload.body) matches p('config.modConfirmRegex'))]">
+        <reddit:get-comment doc:name="get parent comment" doc:id="827456d1-de9e-4b68-bb79-436b23958e55" config-ref="Reddit_Config" thingId="#[payload.parentId]" target="parent" />
+        <set-payload value='#[{
+	(vars.parent - "body" - "linkAuthor" - "linkId"),
+	body: "confirmed",
+	linkAuthor: payload.linkAuthor,
+	linkId: payload.linkId
+}]' doc:name="Set Payload" doc:id="45e2cf7b-2840-421c-bfe5-6859b07d66fb" />
+        <flow-ref doc:name="handle-comment" doc:id="99a52890-8fc1-4c2f-a71c-b8f3a29c8e60" name="handle-comment" target="updateResult" />
+      </when>
+    </choice>
+  </flow>
+  <flow name="is-user-a-mod" doc:id="68a26757-f83c-4658-b420-62878d60f1c5">
+    <os:contains doc:name="Contains" doc:id="d3370679-9ca7-4be4-845c-a476ad3971e8" key="modList" objectStore="NonPersistentStore" target="haveModList" />
+    <choice doc:name="Choice" doc:id="077da51e-cd3e-45d7-b13e-c672963a9581">
+      <when expression="#[vars.haveModList]">
+        <os:retrieve doc:name="Retrieve" doc:id="995644b6-f07b-4085-b780-1e5165fc9f85" key="modList" objectStore="NonPersistentStore" target="modList">
+          <os:default-value>
+            <![CDATA[#[[]]]]>
+          </os:default-value>
+        </os:retrieve>
+      </when>
+      <otherwise>
+        <reddit:get-moderators doc:name="Get Subreddit Moderators" doc:id="9e259181-a2aa-468f-86c3-1b17bec80fa8" config-ref="Reddit_Config" subreddit="${reddit_subreddit}" target="modList" targetValue="#[payload map $.id]" />
+        <os:store doc:name="Store" doc:id="aba70135-2af8-45c4-8a05-ab9308261c37" key="modList" objectStore="NonPersistentStore">
+          <os:value>
+            <![CDATA[#[vars.modList]]]>
+          </os:value>
+        </os:store>
+      </otherwise>
+    </choice>
+    <set-payload value="#[vars.modList contains payload.authorFullname]" doc:name="Set Payload" doc:id="2f16c166-d490-4c84-9471-c154293179e5" />
+  </flow>
+</mule>

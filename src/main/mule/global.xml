@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:system-inks="http://www.mulesoft.org/schema/mule/system-inks" xmlns:discord="http://www.mulesoft.org/schema/mule/discord" xmlns:pushover="http://www.mulesoft.org/schema/mule/pushover" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:mongodb-object-store="http://www.mulesoft.org/schema/mule/mongodb-object-store" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:reddit="http://www.mulesoft.org/schema/mule/reddit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/reddit http://www.mulesoft.org/schema/mule/reddit/current/mule-reddit.xsd
+http://www.mulesoft.org/schema/mule/mongodb-object-store http://www.mulesoft.org/schema/mule/mongodb-object-store/current/mule-mongodb-object-store.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/pushover http://www.mulesoft.org/schema/mule/pushover/current/mule-pushover.xsd
+http://www.mulesoft.org/schema/mule/discord http://www.mulesoft.org/schema/mule/discord/current/mule-discord.xsd
+http://www.mulesoft.org/schema/mule/system-inks http://www.mulesoft.org/schema/mule/system-inks/current/mule-system-inks.xsd">
+  <reddit:config name="Reddit_Config" doc:name="Reddit Config" doc:id="54866767-2f44-464a-9481-fb3de16b22f2">
+    <reddit:connection username="${reddit_username}" password="${reddit_password}" clientId="${reddit_client_id}" clientSecret="${reddit_client_secret}" />
+  </reddit:config>
+  <os:config name="NonPersistentConfig" doc:name="ObjectStore Config" doc:id="49c6b5e5-020a-4f19-805c-441047abe4f2">
+    <os:connection />
+  </os:config>
+  <os:object-store name="NonPersistentStore" doc:name="Object store" doc:id="8004492a-ddc1-4729-a23a-7695bad4a42e" persistent="false" config-ref="NonPersistentConfig" entryTtl="1000" entryTtlUnit="DAYS" expirationInterval="1000" expirationIntervalUnit="DAYS" />
+  <os:config name="MongoObjectStoreConfig" doc:name="PersistentConfig" doc:id="3346916a-c708-4248-88b6-d3b2a8c47ad1">
+    <mongodb-object-store:connection connectionString="mongodb+srv://${mongodb_username}:${mongodb_password}@${mongodb_host}/${mongodb_database}?retryWrites=true&amp;w=majority" database="${mongodb_database}" collectionName="${mongodb_collection}" />
+  </os:config>
+  <os:object-store name="PersistentStore" doc:name="PersistentStore" doc:id="2a1a22ef-9cba-4964-9036-0d8db5864d05" config-ref="MongoObjectStoreConfig" />
+  <configuration-properties doc:name="Configuration properties" doc:id="2cc20eaf-efa3-4c30-a9ea-474ff05e4ca5" file="config.common.yaml" />
+  <global-property doc:name="Global Property" doc:id="b59cb532-ff03-4e49-8812-c0aee4674a61" name="env" value="dev" />
+  <global-property doc:name="Global Property" doc:id="b59cb532-ff03-4e49-8812-c0aee4674a62" name="reddit_subreddit" value="pen_swap" />
+  <system-inks:config name="System_inks_Config" doc:name="System-inks Config" doc:id="ed130b37-ea26-4593-aa13-e42b29eedbda" property_host="system-inks-api.us-e2.cloudhub.io" property_port="443" property_protocol="HTTPS" property_basePath="/api/" />
+  <pushover:config name="Pushover_Config" doc:name="Pushover Config" doc:id="d7c5b63a-4b73-4feb-9532-dc4a1bdea96c">
+    <pushover:connection token="${pushover_appToken}" />
+  </pushover:config>
+</mule>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:pushover="http://www.mulesoft.org/schema/mule/pushover" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/pushover http://www.mulesoft.org/schema/mule/pushover/current/mule-pushover.xsd">
+  <error-handler name="global-error-handlerError_Handler" doc:id="4bf4e666-1624-4cfb-b983-61a300fb33ef">
+    <on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f093d99e-1bd0-4207-b38e-ed0d456cc2bc" type="ANY">
+      <pushover:send-message doc:name="Send message" doc:id="d1d2dd74-4a9e-4152-bf08-cd12283ad09e" config-ref="Pushover_Config" userToken="${pushover_userToken}" message="#[error.detailedDescription]" title="${reddit_subreddit} - Bot Error" priority="HIGH_PRIORITY" />
+    </on-error-continue>
+  </error-handler>
+</mule>
