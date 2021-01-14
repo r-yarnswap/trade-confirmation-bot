@@ -10,4 +10,6 @@ rm -rf mule.zip
 
 mv -f target/*.jar $RUNTIME_FOLDER/apps
 
+mv -f .heroku/wrapper.conf /app/mule-standalone-4.2.0-hf1/conf/wrapper.conf
+
 ./$RUNTIME_FOLDER/bin/mule
