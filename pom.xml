@@ -40,7 +40,7 @@
     <dependency>
       <groupId>net.mikej.objectstore</groupId>
       <artifactId>mongodb-object-store</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
       <classifier>mule-plugin</classifier>
     </dependency>
     <dependency>
