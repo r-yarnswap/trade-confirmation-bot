@@ -1,7 +1,7 @@
 config: 
   alreadyConfirmed: "This trade has already been confirmed! If you believe this to be in error, please contact the moderators."
   confirmConfirmation: "User flairs updated."
-  confirmedRegex: "[^a-z]*confirmed[^a-z]*"
+  confirmedRegex: ".*confirmed.*"
   modConfirmRegex: "[^a-z]*approved[^a-z]*"
   monthlyText: |-
       Post your confirmed trades below; when confirming a post put Confirmed only. The bot will treat anything else as a conversation and ignore it.
